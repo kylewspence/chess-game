@@ -1,2 +1,2 @@
 // Square component exports
-// export { Square } from './Square';
+export { Square } from './Square';

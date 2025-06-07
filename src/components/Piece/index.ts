@@ -1,2 +1,2 @@
 // Piece component exports
-// export { Piece } from './Piece';
+export { Piece } from './Piece';

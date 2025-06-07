@@ -1,34 +1,24 @@
+// src/App.tsx - Add a test class
 import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import { Board } from '@/components/Board/Board';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [isBoardFlipped, setIsBoardFlipped] = useState(false);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount(count => count + 1)}>
-          count is {count}
+    <div className="min-h-screen bg-red-500 flex flex-col items-center justify-center p-4">
+      {/* ↑ Changed to bg-red-500 to test if Tailwind is working */}
+      <h1 className="text-3xl font-bold mb-6 text-white">Chess Game</h1>
+      <div className="flex flex-col items-center bg-white p-6 rounded-lg shadow-lg">
+        <Board flipped={isBoardFlipped} />
+        <button
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          onClick={() => setIsBoardFlipped(!isBoardFlipped)}
+        >
+          Flip Board
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   );
 }
 
