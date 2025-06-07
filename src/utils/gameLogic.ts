@@ -1,13 +1,21 @@
-// src/utils/gameLogic.ts - Update the executeMove function
+// src/utils/gameLogic.ts - Complete update
 
-import { Color, GameStatus } from '@/types';
+import { Color, GameStatus, PieceType } from '@/types';
 import type { Square, Piece, Move, GameState } from '@/types';
 import { getPieceAt, cloneBoard } from './board';
 import { generatePossibleMoves } from './movement';
-import { isKingInCheck, findKing } from './checkDetection';
-import { isCastlingMove, executeCastling } from './specialMoves'; // Add these imports
+import { findKing } from './checkDetection';
+import {
+    isCastlingMove,
+    executeCastling,
+    isPromotionMove,
+    executePromotion,
+    canCaptureEnPassant,
+    executeEnPassant
+} from './specialMoves';
+import { determineGameStatus } from './endgameDetection';
 
-export function executeMove(gameState: GameState, from: Square, to: Square): GameState | null {
+export function executeMove(gameState: GameState, from: Square, to: Square, promotionPiece?: PieceType): GameState | null {
     const piece = getPieceAt(gameState.board, from);
 
     if (!piece) {
@@ -27,22 +35,44 @@ export function executeMove(gameState: GameState, from: Square, to: Square): Gam
         return null; // Invalid move
     }
 
+    // Handle promotion requirement
+    if (isPromotionMove(piece, to) && !promotionPiece) {
+        return {
+            ...gameState,
+            pendingPromotion: { from, to, pawn: piece }
+        };
+    }
+
     // Create new board state
     const newBoard = cloneBoard(gameState.board);
     let capturedPiece = getPieceAt(newBoard, to);
+    let isEnPassant = false;
+    let isPawnDoubleMove = false;
 
-    // Check if this is a castling move
+    // Handle different move types
     if (isCastlingMove(piece, from, to)) {
-        // Execute castling (moves both king and rook)
+        // Castling
         executeCastling(newBoard, from, to);
-        capturedPiece = null; // No capture in castling
+        capturedPiece = null;
+    } else if (isPromotionMove(piece, to) && promotionPiece) {
+        // Pawn promotion
+        executePromotion(newBoard, piece, to, promotionPiece);
+    } else if (piece.type === PieceType.Pawn && canCaptureEnPassant(piece, to, lastMove)) {
+        // En passant capture
+        capturedPiece = executeEnPassant(newBoard, piece, to);
+        isEnPassant = true;
     } else {
-        // Regular move execution
+        // Regular move
         const updatedPiece: Piece = {
             ...piece,
             position: to,
             hasMoved: true
         };
+
+        // Check if this is a pawn double move (for en passant tracking)
+        if (piece.type === PieceType.Pawn && Math.abs(to.row - from.row) === 2) {
+            isPawnDoubleMove = true;
+        }
 
         newBoard[from.row][from.col] = null;
         newBoard[to.row][to.col] = updatedPiece;
@@ -54,10 +84,14 @@ export function executeMove(gameState: GameState, from: Square, to: Square): Gam
         to,
         piece: { ...piece, position: to, hasMoved: true },
         capturedPiece: capturedPiece || undefined,
-        isCastle: isCastlingMove(piece, from, to)
+        isCastle: isCastlingMove(piece, from, to),
+        isEnPassant,
+        isPawnDoubleMove,
+        isPromotion: isPromotionMove(piece, to),
+        promotionPiece
     };
 
-    // Update captured pieces (only if there was a capture)
+    // Update captured pieces
     const newCapturedPieces = { ...gameState.capturedPieces };
     if (capturedPiece) {
         if (capturedPiece.color === Color.White) {
@@ -70,8 +104,9 @@ export function executeMove(gameState: GameState, from: Square, to: Square): Gam
     // Switch turns
     const nextTurn = gameState.currentTurn === Color.White ? Color.Black : Color.White;
 
-    // Check if the opponent is now in check
-    const opponentInCheck = isKingInCheck(newBoard, nextTurn);
+    // Determine game status (includes checkmate/stalemate)
+    const newStatus = determineGameStatus(newBoard, nextTurn);
+    const opponentInCheck = newStatus === GameStatus.Check || newStatus === GameStatus.Checkmate;
 
     // Create new game state
     const newGameState: GameState = {
@@ -79,16 +114,23 @@ export function executeMove(gameState: GameState, from: Square, to: Square): Gam
         currentTurn: nextTurn,
         moveHistory: [...gameState.moveHistory, move],
         capturedPieces: newCapturedPieces,
-        status: opponentInCheck ? GameStatus.Check : GameStatus.Active,
+        status: newStatus,
         check: {
             inCheck: opponentInCheck,
             kingPosition: opponentInCheck ? (findKing(newBoard, nextTurn) || undefined) : undefined
         },
         selectedPiece: null,
-        validMoves: []
+        validMoves: [],
+        // Clear pending promotion
+        pendingPromotion: undefined
     };
 
     return newGameState;
 }
 
-// ... rest of the file stays the same
+/**
+ * Gets the opposite color
+ */
+export function getOppositeColor(color: Color): Color {
+    return color === Color.White ? Color.Black : Color.White;
+}

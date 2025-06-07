@@ -1,6 +1,9 @@
-// src/components/Board/Board.tsx
+// src/components/Board/Board.tsx - Add promotion dialog
+
 import { Square } from '../Square/Square';
+import { PromotionDialog } from '../PromotionDialog';
 import { useChessGame } from '@/hooks/useChessGame';
+import { GameStatus } from '@/types';
 import type { Square as SquareType } from '@/types';
 
 interface BoardProps {
@@ -8,7 +11,7 @@ interface BoardProps {
 }
 
 export const Board = ({ flipped = false }: BoardProps) => {
-    const { gameState, selectSquare } = useChessGame();
+    const { gameState, selectSquare, handlePromotion, cancelPromotion } = useChessGame();
 
     const handleSquareClick = (square: SquareType) => {
         selectSquare(square);
@@ -26,19 +29,35 @@ export const Board = ({ flipped = false }: BoardProps) => {
             gameState.selectedPiece.position.col === square.col;
     };
 
+    const getGameStatusMessage = () => {
+        switch (gameState.status) {
+            case GameStatus.Check:
+                return `${gameState.currentTurn === 'white' ? 'White' : 'Black'} is in CHECK!`;
+            case GameStatus.Checkmate:
+                return `CHECKMATE! ${gameState.currentTurn === 'white' ? 'Black' : 'White'} wins!`;
+            case GameStatus.Stalemate:
+                return 'STALEMATE! Game is a draw.';
+            case GameStatus.Draw:
+                return 'DRAW! Game ended in a draw.';
+            default:
+                return `${gameState.currentTurn === 'white' ? 'White' : 'Black'} to move`;
+        }
+    };
+
     return (
         <div className="relative m-5">
-            {/* Turn indicator with check status */}
+            {/* Game status */}
             <div className="mb-4 text-center">
-                <h2 className="text-xl font-bold">
-                    {gameState.currentTurn === 'white' ? 'White' : 'Black'} to move
-                    {gameState.check.inCheck && (
-                        <span className="text-red-600 ml-2">- CHECK!</span>
-                    )}
+                <h2 className={`text-xl font-bold ${gameState.status === GameStatus.Check ? 'text-red-600' :
+                    gameState.status === GameStatus.Checkmate ? 'text-red-800' :
+                        gameState.status === GameStatus.Draw || gameState.status === GameStatus.Stalemate ? 'text-blue-600' :
+                            'text-gray-800'
+                    }`}>
+                    {getGameStatusMessage()}
                 </h2>
             </div>
 
-            {/* The actual chess board */}
+            {/* Chess board */}
             <div className="grid grid-cols-8 border-2 border-gray-800 w-[640px] h-[640px]">
                 {Array.from({ length: 64 }, (_, i) => {
                     const row = Math.floor(i / 8);
@@ -63,7 +82,15 @@ export const Board = ({ flipped = false }: BoardProps) => {
                 })}
             </div>
 
-            {/* Rank labels (1-8) */}
+            {/* Promotion Dialog */}
+            <PromotionDialog
+                isOpen={!!gameState.pendingPromotion}
+                playerColor={gameState.currentTurn}
+                onSelectPiece={handlePromotion}
+                onCancel={cancelPromotion}
+            />
+
+            {/* Labels stay the same */}
             <div className="absolute top-12 -left-6 h-[640px] flex flex-col justify-around">
                 {Array.from({ length: 8 }, (_, i) => (
                     <div key={`rank-${i}`} className="h-10 flex items-center font-bold text-sm">
@@ -72,7 +99,6 @@ export const Board = ({ flipped = false }: BoardProps) => {
                 ))}
             </div>
 
-            {/* File labels (a-h) */}
             <div className="absolute -bottom-6 left-0 w-[640px] flex justify-around">
                 {Array.from({ length: 8 }, (_, i) => (
                     <div key={`file-${i}`} className="w-10 flex justify-center font-bold text-sm">

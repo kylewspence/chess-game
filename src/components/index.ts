@@ -1,5 +1,5 @@
-// Component exports will be added here as we build them
+// src/components/index.ts
 export * from './Board';
 export * from './Piece';
 export * from './Square';
-// export * from './GameInfo';
+export * from './PromotionDialog';

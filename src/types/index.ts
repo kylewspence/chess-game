@@ -71,6 +71,12 @@ export interface GameState {
     };
     selectedPiece: Piece | null;
     validMoves: Square[];
+    // Add promotion state
+    pendingPromotion?: {
+        from: Square;
+        to: Square;
+        pawn: Piece;
+    };
 }
 
 /**
@@ -108,8 +114,7 @@ export interface Move {
     promotionPiece?: PieceType;
     isCastle?: boolean;
     isEnPassant?: boolean;
-    // Add for en passant tracking
-    isPawnDoubleMove?: boolean;
+    isPawnDoubleMove?: boolean; // For en passant tracking
 }
 
 // Add to GameState interface
