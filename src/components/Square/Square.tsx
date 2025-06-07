@@ -22,7 +22,7 @@ export const Square = ({
     return (
         <div
             className={`
-                w-full h-full flex justify-center items-center relative cursor-pointer
+                w-20 h-20 flex justify-center items-center relative cursor-pointer
                 ${isLightSquare ? 'bg-amber-100' : 'bg-amber-800'}
                 ${isSelected ? 'ring-4 ring-blue-400 ring-inset' : ''}
                 hover:opacity-90
