@@ -1,6 +1,7 @@
 // src/utils/drawConditions.ts
 import type { GameState, Piece } from '@/types';
 import { PieceType } from '@/types';
+import { createInitialBoard } from './board';
 
 /**
  * Checks for 50-move rule (50 moves without pawn move or capture)
@@ -26,7 +27,6 @@ export function isFiftyMoveRule(gameState: GameState): boolean {
  * Checks for threefold repetition
  */
 export function isThreefoldRepetition(gameState: GameState): boolean {
-    const currentBoardState = boardToString(gameState.board);
     const positionCounts = new Map<string, number>();
 
     // Count occurrences of each position
@@ -59,13 +59,4 @@ function boardToString(board: (Piece | null)[][]): string {
             piece ? `${piece.color}${piece.type}` : '.'
         ).join('')
     ).join('');
-}
-
-/**
- * Creates initial board for threefold repetition tracking
- */
-function createInitialBoard() {
-    // Import and use the actual createInitialBoard function
-    const { createInitialBoard } = require('./board');
-    return createInitialBoard();
 }
