@@ -93,3 +93,42 @@ export type AlgebraicNotation = string; // e.g., "a1", "e4", etc.
  * Type for representing a full chess board
  */
 export type Board = (Piece | null)[][];
+
+
+// src/types/index.ts - Add to the Move interface
+
+export interface Move {
+    from: Square;
+    to: Square;
+    piece: Piece;
+    capturedPiece?: Piece;
+    isCheck?: boolean;
+    isCheckmate?: boolean;
+    isPromotion?: boolean;
+    promotionPiece?: PieceType;
+    isCastle?: boolean;
+    isEnPassant?: boolean;
+    // Add for en passant tracking
+    isPawnDoubleMove?: boolean;
+}
+
+// Add to GameState interface
+export interface GameState {
+    board: (Piece | null)[][];
+    currentTurn: Color;
+    moveHistory: Move[];
+    capturedPieces: {
+        [Color.White]: Piece[];
+        [Color.Black]: Piece[];
+    };
+    status: GameStatus;
+    check: {
+        inCheck: boolean;
+        kingPosition?: Square;
+    };
+    selectedPiece: Piece | null;
+    validMoves: Square[];
+    // Add promotion state
+    promotionSquare?: Square;
+    promotionPiece?: Piece;
+}

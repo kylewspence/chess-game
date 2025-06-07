@@ -28,10 +28,13 @@ export const Board = ({ flipped = false }: BoardProps) => {
 
     return (
         <div className="relative m-5">
-            {/* Turn indicator */}
+            {/* Turn indicator with check status */}
             <div className="mb-4 text-center">
                 <h2 className="text-xl font-bold">
                     {gameState.currentTurn === 'white' ? 'White' : 'Black'} to move
+                    {gameState.check.inCheck && (
+                        <span className="text-red-600 ml-2">- CHECK!</span>
+                    )}
                 </h2>
             </div>
 

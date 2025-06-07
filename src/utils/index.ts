@@ -3,3 +3,4 @@
 export * from './board';
 export * from './movement';
 export * from './gameLogic';
+export * from './checkDetection';

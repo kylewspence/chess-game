@@ -1,28 +1,42 @@
 // src/utils/movement.ts
 import { Color, PieceType } from '@/types';
-import type { Board, Square, Piece } from '@/types';
+import type { Board, Square, Piece, Move } from '@/types';
 import { isValidPosition, getPieceAt, hasOpponentPiece, hasFriendlyPiece } from './board';
+import { filterLegalMoves } from './checkDetection';
+import { generateCastlingMoves, generateEnPassantMoves } from './specialMoves';
 
 /**
  * Generates all possible moves for a piece at a given position
+ * Now includes special moves and filters out moves that would result in check
  */
-export function generatePossibleMoves(board: Board, piece: Piece): Square[] {
+export function generatePossibleMoves(board: Board, piece: Piece, lastMove?: Move): Square[] {
+    let moves: Square[] = [];
+
     switch (piece.type) {
         case PieceType.Pawn:
-            return generatePawnMoves(board, piece);
+            moves = [...generatePawnMoves(board, piece), ...generateEnPassantMoves(piece, lastMove)];
+            break;
         case PieceType.Rook:
-            return generateRookMoves(board, piece);
+            moves = generateRookMoves(board, piece);
+            break;
         case PieceType.Bishop:
-            return generateBishopMoves(board, piece);
+            moves = generateBishopMoves(board, piece);
+            break;
         case PieceType.Queen:
-            return generateQueenMoves(board, piece);
+            moves = generateQueenMoves(board, piece);
+            break;
         case PieceType.Knight:
-            return generateKnightMoves(board, piece);
+            moves = generateKnightMoves(board, piece);
+            break;
         case PieceType.King:
-            return generateKingMoves(board, piece);
+            moves = [...generateKingMoves(board, piece), ...generateCastlingMoves(board, piece)];
+            break;
         default:
-            return [];
+            moves = [];
     }
+
+    // Filter out moves that would result in check
+    return filterLegalMoves(board, piece, moves);
 }
 
 /**
@@ -189,7 +203,7 @@ function generateSlidingMoves(board: Board, piece: Piece, directions: Square[]):
 /**
  * Checks if a move is valid for a given piece
  */
-export function isValidMove(board: Board, piece: Piece, targetSquare: Square): boolean {
-    const possibleMoves = generatePossibleMoves(board, piece);
+export function isValidMove(board: Board, piece: Piece, targetSquare: Square, lastMove?: Move): boolean {
+    const possibleMoves = generatePossibleMoves(board, piece, lastMove);
     return possibleMoves.some(move => move.row === targetSquare.row && move.col === targetSquare.col);
 }
