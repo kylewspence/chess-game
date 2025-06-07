@@ -1,22 +1,24 @@
-// src/components/Board/Board.tsx - Add promotion dialog
-
+// src/components/Board/Board.tsx - Accept game state as props
 import { Square } from '../Square/Square';
 import { PromotionDialog } from '../PromotionDialog';
-import { useChessGame } from '@/hooks/useChessGame';
-import { GameStatus } from '@/types';
-import type { Square as SquareType } from '@/types';
+import { GameStatus, Color } from '@/types';
+import type { Square as SquareType, GameState, PieceType } from '@/types';
 
 interface BoardProps {
     flipped?: boolean;
+    gameState: GameState;
+    onSquareClick: (square: SquareType) => void;
+    onPromotion: (pieceType: PieceType) => void;
+    onCancelPromotion: () => void;
 }
 
-export const Board = ({ flipped = false }: BoardProps) => {
-    const { gameState, selectSquare, handlePromotion, cancelPromotion } = useChessGame();
-
-    const handleSquareClick = (square: SquareType) => {
-        selectSquare(square);
-    };
-
+export const Board = ({
+    flipped = false,
+    gameState,
+    onSquareClick,
+    onPromotion,
+    onCancelPromotion
+}: BoardProps) => {
     const isValidMoveSquare = (square: SquareType): boolean => {
         return gameState.validMoves.some(
             move => move.row === square.row && move.col === square.col
@@ -32,15 +34,15 @@ export const Board = ({ flipped = false }: BoardProps) => {
     const getGameStatusMessage = () => {
         switch (gameState.status) {
             case GameStatus.Check:
-                return `${gameState.currentTurn === 'white' ? 'White' : 'Black'} is in CHECK!`;
+                return `${gameState.currentTurn === Color.White ? 'White' : 'Black'} is in CHECK!`;
             case GameStatus.Checkmate:
-                return `CHECKMATE! ${gameState.currentTurn === 'white' ? 'Black' : 'White'} wins!`;
+                return `CHECKMATE! ${gameState.currentTurn === Color.White ? 'Black' : 'White'} wins!`;
             case GameStatus.Stalemate:
                 return 'STALEMATE! Game is a draw.';
             case GameStatus.Draw:
                 return 'DRAW! Game ended in a draw.';
             default:
-                return `${gameState.currentTurn === 'white' ? 'White' : 'Black'} to move`;
+                return `${gameState.currentTurn === Color.White ? 'White' : 'Black'} to move`;
         }
     };
 
@@ -76,7 +78,7 @@ export const Board = ({ flipped = false }: BoardProps) => {
                             piece={piece}
                             isSelected={isSelectedSquare(position)}
                             isValidMove={isValidMoveSquare(position)}
-                            onClick={() => handleSquareClick(position)}
+                            onClick={() => onSquareClick(position)}
                         />
                     );
                 })}
@@ -86,11 +88,11 @@ export const Board = ({ flipped = false }: BoardProps) => {
             <PromotionDialog
                 isOpen={!!gameState.pendingPromotion}
                 playerColor={gameState.currentTurn}
-                onSelectPiece={handlePromotion}
-                onCancel={cancelPromotion}
+                onSelectPiece={onPromotion}
+                onCancel={onCancelPromotion}
             />
 
-            {/* Labels stay the same */}
+            {/* Board labels */}
             <div className="absolute top-12 -left-6 h-[640px] flex flex-col justify-around">
                 {Array.from({ length: 8 }, (_, i) => (
                     <div key={`rank-${i}`} className="h-10 flex items-center font-bold text-sm">

@@ -1,2 +1,2 @@
 // GameInfo component exports
-// export { GameInfo } from './GameInfo';
+export { GameInfo } from './GameInfo';
